@@ -1,0 +1,23 @@
+
+setenv kernel_image Image
+setenv fdt_file bcm2837-rpi-3-b-nobt.dtb
+
+## Boot command line
+## To keep early console, using "keep_bootcon"
+## To use 8250 uart, using "earlycon=uart8250,mmio32,0x3f215040 console=ttyS0,115200"
+## To use pl011 uart, using earlycon=pl011,mmio32,0x3f201000 
+setenv bootargs rw keep_bootcon earlycon=uart8250,mmio32,0x3f215040 console=ttyAMA0,115200 console=tty1 loglevel=8 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait noinitrd 
+
+## Loading kernel, device tree sources over ethernet
+#setenv serverip 10.10.10.2
+#setenv ipaddr 10.10.10.100
+#tftp ${kernel_addr_r} ${kernel_image}
+#tftp ${fdt_addr_r} ${fdt_file}
+
+## Loading kernel, device tree from mmc 
+fatload mmc 0:1  ${kernel_addr_r} ${kernel_image}
+fatload mmc 0:1 ${fdt_addr_r} ${fdt_file}
+
+## Starting linux
+booti ${kernel_addr_r} - ${fdt_addr_r}
+

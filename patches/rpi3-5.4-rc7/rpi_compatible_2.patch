@@ -1,0 +1,55 @@
+diff --git a/arch/arm/include/asm/irqflags.h b/arch/arm/include/asm/irqflags.h
+index a51be1131..d8c78e215 100644
+--- a/arch/arm/include/asm/irqflags.h
++++ b/arch/arm/include/asm/irqflags.h
+@@ -178,6 +178,16 @@ static inline unsigned long native_save_flags(void)
+ #define arch_local_irq_restore arch_local_irq_restore
+ static inline void native_irq_restore(unsigned long flags)
+ {
++	unsigned long temp = 0;
++	flags &= ~(1 << 6);
++	asm volatile (
++		" mrs %0, cpsr"
++		: "=r" (temp)
++		:
++		: "memory", "cc");
++		/* Preserve FIQ bit */
++		temp &= (1 << 6);
++		flags = flags | temp;
+ 	asm volatile(
+ 		"	msr	" IRQMASK_REG_NAME_W ", %0	@ native_irq_restore"
+ 		:
+diff --git a/arch/arm64/boot/dts/broadcom/Makefile b/arch/arm64/boot/dts/broadcom/Makefile
+index 2cd1820d7..380b33789 100644
+--- a/arch/arm64/boot/dts/broadcom/Makefile
++++ b/arch/arm64/boot/dts/broadcom/Makefile
+@@ -5,6 +5,15 @@ dtb-$(CONFIG_ARCH_BCM2835) += bcm2837-rpi-3-a-plus.dtb \
+ 			      bcm2837-rpi-3-b-nobt.dtb \
+ 			      bcm2837-rpi-cm3-io3.dtb
+ 
++dtb-$(CONFIG_ARCH_BCM2709) += bcm2710-rpi-2-b.dtb
++dtb-$(CONFIG_ARCH_BCM2709) += bcm2710-rpi-3-b.dtb
++dtb-$(CONFIG_ARCH_BCM2835) += bcm2710-rpi-2-b.dtb
++dtb-$(CONFIG_ARCH_BCM2835) += bcm2710-rpi-3-b.dtb
++dtb-$(CONFIG_ARCH_BCM2835) += bcm2711-rpi-4-b.dtb
++dtb-$(CONFIG_ARCH_BCM2835) += bcm2710-rpi-3-b-plus.dtb
++dtb-$(CONFIG_ARCH_BCM2709) += bcm2710-rpi-cm3.dtb
++dtb-$(CONFIG_ARCH_BCM2835) += bcm2710-rpi-cm3.dtb
++
+ subdir-y	+= northstar2
+ subdir-y	+= stingray
+ 
+diff --git a/drivers/irqchip/irq-bcm2835.c b/drivers/irqchip/irq-bcm2835.c
+index b9c754296..8a648b94c 100644
+--- a/drivers/irqchip/irq-bcm2835.c
++++ b/drivers/irqchip/irq-bcm2835.c
+@@ -165,6 +165,9 @@ static struct irq_chip armctrl_chip = {
+ 	.name = "ARMCTRL-level",
+ 	.irq_mask = armctrl_mask_irq,
+ 	.irq_unmask = armctrl_unmask_irq,
++#ifdef CONFIG_ARM64
++	.irq_ack    = armctrl_ack_irq,
++#endif
+ 	.flags = IRQCHIP_PIPELINE_SAFE,
+ };
+ 

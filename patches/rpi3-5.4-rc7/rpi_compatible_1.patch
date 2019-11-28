@@ -1,0 +1,66 @@
+diff --git a/arch/arm/include/asm/irqflags.h b/arch/arm/include/asm/irqflags.h
+index a3b186608..aeec7f24e 100644
+--- a/arch/arm/include/asm/irqflags.h
++++ b/arch/arm/include/asm/irqflags.h
+@@ -163,23 +163,13 @@ static inline unsigned long arch_local_save_flags(void)
+ }
+ 
+ /*
+- * restore saved IRQ state
++ * restore saved IRQ & FIQ state
+  */
+ #define arch_local_irq_restore arch_local_irq_restore
+ static inline void arch_local_irq_restore(unsigned long flags)
+ {
+-	unsigned long temp = 0;
+-	flags &= ~(1 << 6);
+-	asm volatile (
+-		" mrs %0, cpsr"
+-		: "=r" (temp)
+-		:
+-		: "memory", "cc");
+-		/* Preserve FIQ bit */
+-		temp &= (1 << 6);
+-		flags = flags | temp;
+-	asm volatile (
+-		"    msr    cpsr_c, %0    @ local_irq_restore"
++	asm volatile(
++		"	msr	" IRQMASK_REG_NAME_W ", %0	@ local_irq_restore"
+ 		:
+ 		: "r" (flags)
+ 		: "memory", "cc");
+diff --git a/arch/arm64/boot/dts/broadcom/Makefile b/arch/arm64/boot/dts/broadcom/Makefile
+index c3eaf8d63..44f0dfbce 100644
+--- a/arch/arm64/boot/dts/broadcom/Makefile
++++ b/arch/arm64/boot/dts/broadcom/Makefile
+@@ -3,14 +3,6 @@ dtb-$(CONFIG_ARCH_BCM2835) += bcm2837-rpi-3-a-plus.dtb \
+ 			      bcm2837-rpi-3-b.dtb \
+ 			      bcm2837-rpi-3-b-plus.dtb \
+ 			      bcm2837-rpi-cm3-io3.dtb
+-dtb-$(CONFIG_ARCH_BCM2709) += bcm2710-rpi-2-b.dtb
+-dtb-$(CONFIG_ARCH_BCM2709) += bcm2710-rpi-3-b.dtb
+-dtb-$(CONFIG_ARCH_BCM2835) += bcm2710-rpi-2-b.dtb
+-dtb-$(CONFIG_ARCH_BCM2835) += bcm2710-rpi-3-b.dtb
+-dtb-$(CONFIG_ARCH_BCM2835) += bcm2711-rpi-4-b.dtb
+-dtb-$(CONFIG_ARCH_BCM2835) += bcm2710-rpi-3-b-plus.dtb
+-dtb-$(CONFIG_ARCH_BCM2709) += bcm2710-rpi-cm3.dtb
+-dtb-$(CONFIG_ARCH_BCM2835) += bcm2710-rpi-cm3.dtb
+ 
+ subdir-y	+= northstar2
+ subdir-y	+= stingray
+diff --git a/drivers/irqchip/irq-bcm2835.c b/drivers/irqchip/irq-bcm2835.c
+index 40c1b38d5..a8372a89a 100644
+--- a/drivers/irqchip/irq-bcm2835.c
++++ b/drivers/irqchip/irq-bcm2835.c
+@@ -164,10 +164,7 @@ static void armctrl_ack_irq(struct irq_data *d)
+ static struct irq_chip armctrl_chip = {
+ 	.name = "ARMCTRL-level",
+ 	.irq_mask = armctrl_mask_irq,
+-	.irq_unmask = armctrl_unmask_irq,
+-#ifdef CONFIG_ARM64
+-	.irq_ack    = armctrl_ack_irq
+-#endif
++	.irq_unmask = armctrl_unmask_irq
+ };
+ 
+ static int armctrl_xlate(struct irq_domain *d, struct device_node *ctrlr,
