@@ -43,8 +43,17 @@ export BUILDROOT_BUILD_DIR=${BASE_DIR}/../output/buildroot
 ################################################################################
 # If toolchain is aimed for specific configuration. Uncomment for using it
 ################################################################################
-#TOOLCHAIN_BIN_DIR=${BASE_DIR}/../toolchain/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf/bin
-TOOLCHAIN_BIN_DIR=${BASE_DIR}/../toolchain/gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu/bin
-#TOOLCHAIN_LIBC_DIR=${BASE_DIR}/../toolchain/gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu/aarch64-linux-gnu/libc
+TARGET_ARCH="arm"
+#TARGET_ARCH="arm64"
+if [ ${TARGET_ARCH} = "arm" ]; then
+	TOOLCHAIN_BIN_DIR=${BASE_DIR}/../toolchain/gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf/bin
+	TOOLCHAIN_LIBC_DIR=${BASE_DIR}/../toolchain/gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf/arm-linux-gnueabihf/libc
+	CC_PREFIX="arm-linux-gnueabihf-"
+	CC_HOST="arm-linux-gnueabihf"
+else
+	TOOLCHAIN_BIN_DIR=${BASE_DIR}/../toolchain/gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu/bin
+	TOOLCHAIN_LIBC_DIR=${BASE_DIR}/../toolchain/gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu/aarch64-linux-gnu/libc
+	CC_PREFIX="aarch64-linux-gnu-"
+	CC_HOST="aarch64-linux-gnu"
+fi
 export PATH=$PATH:${TOOLCHAIN_BIN_DIR}
-

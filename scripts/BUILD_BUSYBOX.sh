@@ -18,8 +18,8 @@ source ENV.sh
 ################################################################################
 # For building
 ################################################################################
-make -j4 ARCH=arm64 \
-	CROSS_COMPILE=aarch64-linux-gnu- \
+make -j4 ARCH=${TARGET_ARCH} \
+	CROSS_COMPILE=${CC_PREFIX} \
 	O=${BUSYBOX_BUILD_DIR} \
 	-C ${BUSYBOX_DIR} \
 	CONFIG_PREFIX=${BUSYBOX_INSTALL_DIR} \

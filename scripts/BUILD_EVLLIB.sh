@@ -1,17 +1,19 @@
 #!/bin/bash
+
 ################################################################################
 # Basic settings
 ################################################################################
-source ./ENV.sh
+source ENV.sh
 
 ################################################################################
-# Uncomment for creating .configuration file from beginning
+# Remove older compiled files
 ################################################################################
-make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- O=${KRN_BUILD_DIR} -C ${KRN_DIR} defconfig
-#make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- O=${KRN_BUILD_DIR} -C ${KRN_DIR} bcm2711_defconfig
-make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- O=${KRN_BUILD_DIR} -C ${KRN_DIR} bcmrpi3_defconfig
+rm -rf ${EVL_BUILD_DIR}
 
 ################################################################################
-# Modifying configurations
+# Build and Install
 ################################################################################
-make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- O=${KRN_BUILD_DIR} -C ${KRN_DIR} menuconfig
+make -j4 -C ${EVL_DIR} \
+	ARCH=${TARGET_ARCH} CROSS_COMPILE=${CC_PREFIX} UAPI=${KRN_DIR} \
+	O=${EVL_BUILD_DIR} DESTDIR=${EVL_INSTALL_DIR} install 
+sync
